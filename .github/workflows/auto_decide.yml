@@ -1,0 +1,30 @@
+name: Auto decide
+
+"on":
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Decide (z-score mean reversion)
+        run: python scripts/algorithm.py
+      - name: Backtest vs baselines
+        run: python scripts/backtest.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add decision.json docs/data/decision_log.json docs/data/backtest.json
+          git commit -m "Update decision [automated]" || echo "Nothing to commit"
+          git push
