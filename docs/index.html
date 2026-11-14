@@ -147,4 +147,17 @@ Promise.all([
     }
     const line = v => ({ data: labels.map(() => v), borderColor: '#d6d3d1', borderDash: [4, 4], pointRadius: 0, borderWidth: 1 });
     new Chart(document.getElementById('z' + p), { type: 'line',
-      data: { labels,
+      data: { labels, datasets: [{ data: z, borderColor: C.mine, pointRadius: 0, borderWidth: 1.6 }, line(1), line(-1)] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { maxTicksLimit: 6 } }, y: { suggestedMin: -2.5, suggestedMax: 2.5 } } } });
+  });
+
+  // 4. Decision log
+  document.getElementById('log').innerHTML = E.slice().reverse().slice(0, 50).map(e => {
+    const top = mk.products.reduce((a, b) => Math.abs(e.decision[a]) >= Math.abs(e.decision[b]) ? a : b);
+    return `<tr><td>${new Date(e.run_at).toLocaleString('fr-FR')}</td><td>${e.market_tick}</td>` +
+      mk.products.map(p => `<td class="${cl(e.decision[p])}">${e.decision[p]}</td>`).join('') +
+      `<td>${top} : ${esc(e.details[top].reason)}</td></tr>`; }).join('');
+}).catch(err => { document.getElementById('tick').textContent = 'erreur de chargement'; console.error(err); });
+</script>
+</body>
+</html>
