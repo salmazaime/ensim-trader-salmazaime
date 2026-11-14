@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trader Salma · ENSIM Trade Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:#faf7f2; color:#2b2118; }
+  header { padding:26px 16px 18px; max-width:1150px; margin:0 auto; border-bottom:3px solid #b45309; }
+  header h1 { margin:0; font-size:1.6rem; color:#7c2d12; }
+  header p { margin:6px 0 0; color:#6b5b4e; font-size:.92rem; }
+  main { max-width:1150px; margin:0 auto; padding:10px 16px 40px; }
+  section { margin-top:26px; }
+  h2 { font-size:1.05rem; margin:0 0 4px; color:#7c2d12; }
+  .q { color:#6b5b4e; font-size:.85rem; margin:0 0 12px; font-style:italic; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .k { background:#fff; border:1px solid #eadfd3; border-radius:10px; padding:12px 14px; }
+  .k .l { font-size:.8rem; color:#6b5b4e; }
+  .k .v { font-size:1.45rem; font-weight:700; margin-top:2px; }
+  .k .s { font-size:.75rem; color:#8a7a6c; margin-top:2px; }
+  .up { color:#15803d; } .down { color:#b91c1c; }
+  .panel { background:#fff; border:1px solid #eadfd3; border-radius:10px; padding:14px; margin-top:10px; }
+  .cols { display:grid; grid-template-columns:1.4fr 1fr; gap:10px; }
+  .three { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  @media (max-width:860px){ .cols, .three { grid-template-columns:1fr; } }
+  .h300 { position:relative; height:300px; } .h220 { position:relative; height:220px; }
+  .note { font-size:.76rem; color:#8a7a6c; margin:8px 0 0; }
+  .warn { background:#fef3c7; border-left:4px solid #b45309; padding:10px 12px; font-size:.86rem; margin-top:16px; display:none; }
+  table { width:100%; border-collapse:collapse; font-size:.84rem; }
+  th, td { padding:6px; border-bottom:1px solid #f0e7dd; text-align:left; vertical-align:top; }
+  th { color:#8a7a6c; font-weight:600; }
+  .wrap { overflow-x:auto; }
+  .b { color:#15803d; font-weight:600; } .s2 { color:#b91c1c; font-weight:600; } .h { color:#8a7a6c; }
+  footer { text-align:center; font-size:.78rem; color:#8a7a6c; padding:18px; }
+  a { color:#b45309; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Trader Salma · retour à la moyenne</h1>
+  <p>Je vends ce qui est anormalement cher, j'achète ce qui est anormalement bon marché (z-score sur 20 ticks). Marché au tick <b id="tick">…</b> · dernière décision <b id="last">…</b></p>
+</header>
+<main>
+  <div class="warn" id="warn"></div>
+
+  <section>
+    <h2>1 · Performance face aux baselines</h2>
+    <p class="q">Est-ce que ma stratégie fait mieux que le hasard ?</p>
+    <div class="row" id="perfk"></div>
+    <div class="cols">
+      <div class="panel"><b>Valeur totale du portefeuille (rejeu de l'historique réel)</b><div class="h300"><canvas id="perf"></canvas></div>
+        <p class="note">Lignes superposées : même point de départ pour tous, on voit à quel moment l'écart se creuse et s'il est régulier ou dû à un seul coup de chance.</p></div>
+      <div class="panel wrap"><b>Classement réel (organisateur)</b>
+        <table><thead><tr><th>#</th><th>Trader</th><th>Valeur</th></tr></thead><tbody id="lb"></tbody></table>
+        <p class="note">Tableau : je compare des montants précis à un instant donné.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 · Risque</h2>
+    <p class="q">Combien je peux perdre en chemin pour obtenir ce rendement ?</p>
+    <div class="row" id="riskk"></div>
+    <div class="panel"><b>Perte depuis le plus haut (drawdown), en %</b><div class="h300"><canvas id="dd"></canvas></div>
+      <p class="note">Lignes sous zéro : la profondeur montre la pire perte, la largeur combien de temps il faut pour se refaire. Comparé à random_trader pour situer mon risque.</p></div>
+  </section>
+
+  <section>
+    <h2>3 · Mon signal par produit (z-score)</h2>
+    <p class="q">Pourquoi j'achète ou je vends maintenant ?</p>
+    <div class="three" id="sig"></div>
+    <p class="note">Courbe = écart du prix à sa moyenne des 20 derniers ticks, en écarts-types. Au-dessus de +1 → vente maximale ; en dessous de -1 → achat maximal ; entre -0,2 et +0,2 → j'attends. Les lignes pointillées sont ces seuils.</p>
+  </section>
+
+  <section>
+    <h2>4 · Journal des décisions</h2>
+    <p class="q">Qu'est-ce que j'ai décidé, et pourquoi ?</p>
+    <div class="panel wrap"><table><thead><tr><th>Quand</th><th>Tick</th><th>A</th><th>B</th><th>C</th><th>Raison principale</th></tr></thead><tbody id="log"></tbody></table></div>
+  </section>
+</main>
+<footer>Projet BI · ENSIM 5A · Salma Zaime · <a href="https://github.com/salmazaime/ensim-trader-salmazaime">code</a></footer>
+
+<script>
+const BASE = "https://raw.githubusercontent.com/exofri/ensim-trade-center/refs/heads/main";
+const t0 = '?t=' + Date.now();
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const n = x => Math.round(x).toLocaleString('fr-FR');
+const k = (l, v, s, c = '') => `<div class="k"><div class="l">${esc(l)}</div><div class="v ${c}">${esc(v)}</div><div class="s">${esc(s)}</div></div>`;
+const C = { mine:'#b45309', random_trader:'#94a3b8', random_buyer:'#0ea5e9', random_seller:'#8b5cf6', hold:'#d6d3d1' };
+const N = { mine:'Ma stratégie', random_trader:'random_trader', random_buyer:'random_buyer', random_seller:'random_seller', hold:'ne rien faire' };
+const cl = v => v > 0 ? 'b' : v < 0 ? 's2' : 'h';
+const WINDOW = 20;
+
+Promise.all([
+  fetch('data/backtest.json' + t0).then(r => r.json()),
+  fetch('data/decision_log.json' + t0).then(r => r.json()),
+  fetch(BASE + '/docs/data/market.json' + t0).then(r => r.json()),
+  fetch(BASE + '/docs/data/leaderboard.json' + t0).then(r => r.json()).catch(() => ({ leaderboard: [] }))
+]).then(([bt, log, mk, lb]) => {
+  const E = log.entries, last = E[E.length - 1], S = bt.stats, H = mk.history;
+  document.getElementById('tick').textContent = H[H.length - 1].t;
+  document.getElementById('last').textContent = new Date(last.run_at).toLocaleString('fr-FR');
+  if (!last.registered) {
+    const w = document.getElementById('warn'); w.style.display = 'block';
+    w.textContent = "Mon trader n'est pas encore actif sur le marché (portefeuille pas encore créé par l'organisateur). Les performances ci-dessous viennent du rejeu de l'historique réel.";
+  }
+
+  // 1. Performance
+  const bestBase = Math.max(S.random_trader.final, S.random_buyer.final, S.random_seller.final);
+  document.getElementById('perfk').innerHTML =
+    k('Valeur finale', n(S.mine.final), 'départ ' + n(bt.series.mine[0])) +
+    k('Rendement', (S.mine.return_pct >= 0 ? '+' : '') + S.mine.return_pct + ' %', bt.ticks.length + ' ticks rejoués', S.mine.return_pct >= 0 ? 'up' : 'down') +
+    k('Avance sur la meilleure baseline', (S.mine.final >= bestBase ? '+' : '') + n(S.mine.final - bestBase), 'meilleure baseline ' + n(bestBase), S.mine.final >= bestBase ? 'up' : 'down') +
+    k('Si je ne faisais rien', n(S.hold.final), 'référence passive');
+  new Chart(document.getElementById('perf'), { type: 'line',
+    data: { labels: bt.ticks, datasets: ['mine', 'random_trader', 'random_buyer', 'random_seller'].map(key => ({
+      label: N[key], data: bt.series[key], borderColor: C[key], backgroundColor: C[key], pointRadius: 0, borderWidth: key === 'mine' ? 3 : 1.4 })) },
+    options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { ticks: { maxTicksLimit: 8 } } } } });
+  document.getElementById('lb').innerHTML = (lb.leaderboard || []).map((r, i) =>
+    `<tr><td>${i + 1}</td><td>${esc(r.name)}${r.id === 'salmazaime' ? ' ★' : ''}${r.baseline ? ' <span class="h">(baseline)</span>' : ''}</td><td>${n(r.total_value)}</td></tr>`).join('') || '<tr><td colspan="3">indisponible</td></tr>';
+
+  // 2. Risk
+  const dd = v => { let m = v[0]; return v.map(x => { m = Math.max(m, x); return +(100 * (x / m - 1)).toFixed(2); }); };
+  document.getElementById('riskk').innerHTML =
+    k('Pire perte (moi)', S.mine.max_drawdown_pct + ' %', 'random_trader ' + S.random_trader.max_drawdown_pct + ' %', 'down') +
+    k('Volatilité par tick (moi)', S.mine.volatility_pct + ' %', 'random_buyer ' + S.random_buyer.volatility_pct + ' %') +
+    k('Rendement / volatilité', (S.mine.return_pct / S.mine.volatility_pct).toFixed(0), 'random_seller ' + (S.random_seller.return_pct / S.random_seller.volatility_pct).toFixed(0)) +
+    k('Cash toujours gardé', '50 €', 'jamais d\'achat en dessous');
+  new Chart(document.getElementById('dd'), { type: 'line',
+    data: { labels: bt.ticks, datasets: ['mine', 'random_trader'].map(key => ({
+      label: N[key], data: dd(bt.series[key]), borderColor: C[key], pointRadius: 0, borderWidth: 1.6 })) },
+    options: { maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 8 } }, y: { max: 0 } } } });
+
+  // 3. Signal: rolling z-score per product
+  const recent = 120;
+  document.getElementById('sig').innerHTML = mk.products.map(p => {
+    const d = last.details[p];
+    return `<div class="panel"><b>Produit ${p}</b> · <span class="${cl(d.final)}">${d.final > 0 ? 'achat' : d.final < 0 ? 'vente' : 'attente'} ${d.final}</span>
+      <div class="note">z = ${d.z ?? '–'} · prix ${d.price ?? '–'} · moyenne ${d.mean ?? '–'}</div><div class="h220"><canvas id="z${p}"></canvas></div></div>`; }).join('');
+  mk.products.forEach(p => {
+    const px = H.map(r => r[p]), labels = [], z = [];
+    for (let i = Math.max(WINDOW - 1, px.length - recent); i < px.length; i++) {
+      const w = px.slice(i - WINDOW + 1, i + 1), m = w.reduce((a, b) => a + b, 0) / WINDOW;
+      const sd = Math.sqrt(w.reduce((a, b) => a + (b - m) ** 2, 0) / WINDOW);
+      labels.push(H[i].t); z.push(sd > 0 ? +((px[i] - m) / sd).toFixed(2) : 0);
+    }
+    const line = v => ({ data: labels.map(() => v), borderColor: '#d6d3d1', borderDash: [4, 4], pointRadius: 0, borderWidth: 1 });
+    new Chart(document.getElementById('z' + p), { type: 'line',
+      data: { labels,
