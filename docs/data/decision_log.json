@@ -215,6 +215,60 @@
         "random_buyer": 17863.22,
         "random": 15497.31
       }
+    },
+    {
+      "run_at": "2026-11-15T19:38:31Z",
+      "market_tick": 344,
+      "registered": false,
+      "money": 1000.0,
+      "holdings": {
+        "A": 1000.0,
+        "B": 1000.0,
+        "C": 1000.0
+      },
+      "decision": {
+        "A": -1.0,
+        "B": -1.0,
+        "C": 1.0
+      },
+      "details": {
+        "A": {
+          "signal": -1.0,
+          "z": 1.725,
+          "mean": 4.8001,
+          "std": 0.4108,
+          "price": 5.5087,
+          "reason": "sell: price 5.509 is +1.72 std from its 20-tick mean 4.800",
+          "final": -1.0
+        },
+        "B": {
+          "signal": -1.0,
+          "z": 1.838,
+          "mean": 10.391,
+          "std": 0.1409,
+          "price": 10.6499,
+          "reason": "sell: price 10.650 is +1.84 std from its 20-tick mean 10.391",
+          "final": -1.0
+        },
+        "C": {
+          "signal": 1.0,
+          "z": -1.667,
+          "mean": 1.3772,
+          "std": 0.2373,
+          "price": 0.9816,
+          "reason": "buy: price 0.982 is -1.67 std from its 20-tick mean 1.377",
+          "final": 1.0
+        }
+      },
+      "leaderboard": {
+        "random_trader": 19359.41,
+        "taharachedi": 18485.16,
+        "gaspard": 18140.16,
+        "tester": 18122.86,
+        "random_buyer": 18072.17,
+        "random_seller": 18005.8,
+        "random": 15564.26
+      }
     }
   ]
 }
