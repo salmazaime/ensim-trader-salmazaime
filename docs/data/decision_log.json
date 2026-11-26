@@ -2079,6 +2079,70 @@
         "random_seller": 18005.8,
         "random": 15432.25
       }
+    },
+    {
+      "run_at": "2026-11-26T02:42:22Z",
+      "market_tick": 380,
+      "registered": true,
+      "money": 4507.65,
+      "holdings": {
+        "A": 2688.2,
+        "B": 0.0,
+        "C": 1724.7
+      },
+      "decision": {
+        "A": -0.255,
+        "B": -0.714,
+        "C": -1.0
+      },
+      "details": {
+        "A": {
+          "signal": -0.255,
+          "z": 0.255,
+          "mean": 4.5274,
+          "std": 0.2188,
+          "price": 4.5831,
+          "reason": "sell: price 4.583 is +0.25 std from its 20-tick mean 4.527",
+          "final": -0.255
+        },
+        "B": {
+          "signal": -0.714,
+          "z": 0.714,
+          "mean": 12.1241,
+          "std": 0.4455,
+          "price": 12.4424,
+          "reason": "sell: price 12.442 is +0.71 std from its 20-tick mean 12.124",
+          "final": -0.714
+        },
+        "C": {
+          "signal": -1.0,
+          "z": 1.516,
+          "mean": 1.1096,
+          "std": 0.1598,
+          "price": 1.3519,
+          "reason": "sell: price 1.352 is +1.52 std from its 20-tick mean 1.110",
+          "final": -1.0
+        }
+      },
+      "leaderboard": {
+        "taharachedi": 21510.73,
+        "gaspard": 20372.79,
+        "clement": 19380.58,
+        "joel": 19378.08,
+        "warren": 19377.4,
+        "franck": 19377.36,
+        "eric-lefebvre": 19377.36,
+        "paul_transon": 19377.36,
+        "aziz": 19377.36,
+        "ismail_achibat": 19366.74,
+        "random_buyer": 19265.68,
+        "molivier": 19231.19,
+        "salmazaime": 19159.49,
+        "tester": 18775.87,
+        "random_trader": 18773.07,
+        "random_seller": 18005.8,
+        "random": 15397.33
+      }
     }
   ]
 }
